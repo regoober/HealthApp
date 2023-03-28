@@ -49,6 +49,22 @@ private func createMonthDayDateFormatter() -> DateFormatter {
     return dateFormatter
 }
 
+private func createDayDateFormatter() -> DateFormatter {
+    let dateFormatter = DateFormatter()
+    
+    dateFormatter.dateFormat = "dd"
+    
+    return dateFormatter
+}
+
+private func createMonthAbbrDateFormatter() -> DateFormatter {
+    let dateFormatter = DateFormatter()
+    
+    dateFormatter.dateFormat = "MMM"
+    
+    return dateFormatter
+}
+
 func createChartDateLastUpdatedLabel(_ dateLastUpdated: Date) -> String {
     let dateFormatter = DateFormatter()
     
@@ -60,7 +76,7 @@ func createChartDateLastUpdatedLabel(_ dateLastUpdated: Date) -> String {
 /// Returns an array of horizontal axis markers based on the desired time frame, where the last axis marker corresponds to `lastDate`
 /// `useWeekdays` will use short day abbreviations (e.g. "Sun, "Mon", "Tue") instead.
 /// Defaults to showing the current day as the last axis label of the chart and going back one week.
-func createHorizontalAxisMarkers(lastDate: Date = Date(), useWeekdays: Bool = true) -> [String] {
+func createHorizontalAxisMarkers(lastDate: Date = Date(), useWeekdays: Bool = true, weekdayOffset: Int = 0) -> [String] {
     let calendar: Calendar = .current
     let weekdayTitles = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     
@@ -69,7 +85,7 @@ func createHorizontalAxisMarkers(lastDate: Date = Date(), useWeekdays: Bool = tr
     if useWeekdays {
         titles = weekdayTitles
         
-        let weekday = calendar.component(.weekday, from: lastDate)
+        let weekday = calendar.component(.weekday, from: lastDate) + weekdayOffset
         
         return Array(titles[weekday..<titles.count]) + Array(titles[0..<weekday])
     } else {
@@ -90,8 +106,12 @@ func createHorizontalAxisMarkers(lastDate: Date = Date(), useWeekdays: Bool = tr
     }
 }
 
-func createHorizontalAxisMarkers(for dates: [Date]) -> [String] {
-    let dateFormatter = createMonthDayDateFormatter()
+func createHorizontalAxisMarkers(for dates: [Date], dataInterval: DataInterval = .daily) -> [String] {
+    let dateFormatterDict: [DataInterval: DateFormatter] = [.daily: createMonthDayDateFormatter(),
+                                                            .weekly: createDayDateFormatter(),
+                                                            .monthly: createMonthAbbrDateFormatter()]
     
+    let dateFormatter = dateFormatterDict[dataInterval]!
     return dates.map { dateFormatter.string(from: $0) }
+                .map { dataInterval == .monthly ? String($0.first!) : $0 } // truncate month to one letter for `.monthly`
 }

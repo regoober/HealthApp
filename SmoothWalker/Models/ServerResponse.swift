@@ -12,6 +12,7 @@ struct ServerResponse: Codable {
     let identifier: String
     var date: Date
     var weeklyReport: WeeklyReport
+    var avgWalkSpeeds: WeeklyReport
 }
 
 /// A representation of data summarizing data from a clinician.

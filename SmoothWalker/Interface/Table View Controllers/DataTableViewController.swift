@@ -19,15 +19,18 @@ class DataTableViewController: UITableViewController {
     
     let dateFormatter = DateFormatter()
     
+    
     var dataTypeIdentifier: String
+    var dataInterval: DataInterval = .daily
     var dataValues: [HealthDataTypeValue] = []
     
     public var showGroupedTableViewTitle: Bool = false
     
     // MARK: Initializers
     
-    init(dataTypeIdentifier: String) {
+    init(dataTypeIdentifier: String, dataInterval: DataInterval = .daily) {
         self.dataTypeIdentifier = dataTypeIdentifier
+        self.dataInterval = dataInterval
         super.init(style: .insetGrouped)
     }
     
@@ -66,6 +69,12 @@ class DataTableViewController: UITableViewController {
     func reloadData() {
         self.dataValues.isEmpty ? self.setEmptyDataView() : self.removeEmptyDataView()
         self.dataValues.sort { $0.startDate > $1.startDate }
+        switch dataInterval {
+        case .daily, .weekly:
+            dateFormatter.dateStyle = .medium
+        case .monthly:
+            dateFormatter.dateFormat = "MMM yyyy"
+        }
         self.tableView.reloadData()
         self.tableView.refreshControl?.endRefreshing()
     }

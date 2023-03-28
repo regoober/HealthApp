@@ -22,6 +22,7 @@ class HealthQueryTableViewController: ChartTableViewController, HealthQueryDataS
         
         setUpFetchButton()
         setUpRefreshControl()
+        setUpSegmentControl()
     }
     
     private func setUpRefreshControl() {
@@ -38,6 +39,10 @@ class HealthQueryTableViewController: ChartTableViewController, HealthQueryDataS
         navigationItem.rightBarButtonItem = barButtonItem
     }
     
+    private func setUpSegmentControl() {
+        segmentedControl.addTarget(self, action: #selector(segmentControlValueChanged(_:)), for: .valueChanged)
+    }
+    
     // MARK: - Selectors
     
     @objc
@@ -47,6 +52,15 @@ class HealthQueryTableViewController: ChartTableViewController, HealthQueryDataS
     
     @objc
     private func refreshControlValueChanged() {
+        loadData()
+    }
+    
+    @objc
+    private func segmentControlValueChanged(_ sender: UISegmentedControl) {
+        let dataInterval = DataInterval(rawValue: sender.selectedSegmentIndex)!
+        self.dataInterval = dataInterval
+        // Set interval predicate
+        queryPredicate = createIntervalPredicate(dataInterval: dataInterval)
         loadData()
     }
     
