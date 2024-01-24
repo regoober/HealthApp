@@ -146,6 +146,8 @@ class NetworkSupport {
             return .meterUnit(with: .kilo)
         case "pound":
             return .pound()
+        case "m/s":
+            return .meterUnit(with: .none).unitDivided(by: .secondUnit(with: .nano))
         default:
             return nil
         }

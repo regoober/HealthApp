@@ -17,6 +17,7 @@ private extension CGFloat {
 
 /// A `DataTableViewController` with a chart header view.
 class ChartTableViewController: DataTableViewController {
+    var supportsMultipleIntervals: Bool = false
     
     // MARK: - UI Properties
     
@@ -35,6 +36,15 @@ class ChartTableViewController: DataTableViewController {
         chartView.applyHeaderStyle()
         
         return chartView
+    }()
+    
+    static let segmentItems = ["Daily", "Weekly", "Monthly"]
+    lazy var segmentedControl: UISegmentedControl = {
+        let segmentedControl = UISegmentedControl(items: Self.segmentItems)
+        segmentedControl.selectedSegmentIndex = 0
+        
+        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        return segmentedControl
     }()
     
     // MARK: - View Life Cycle Overrides
@@ -59,9 +69,11 @@ class ChartTableViewController: DataTableViewController {
     }
     
     private func setUpHeaderView() {
+        if supportsMultipleIntervals {
+            headerView.addSubview(segmentedControl)
+        }
         headerView.addSubview(chartView)
         
-        // headerView.addSubview(testLabel)
         tableView.tableHeaderView = headerView
     }
 
@@ -69,6 +81,9 @@ class ChartTableViewController: DataTableViewController {
         var constraints: [NSLayoutConstraint] = []
         
         constraints += createHeaderViewConstraints()
+        if supportsMultipleIntervals {
+            constraints += createSegmentViewConstraints()
+        }
         constraints += createChartViewConstraints()
         
         NSLayoutConstraint.activate(constraints)
@@ -83,10 +98,28 @@ class ChartTableViewController: DataTableViewController {
         return [leading, trailing, top, centerX]
     }
     
+    private func createSegmentViewConstraints() -> [NSLayoutConstraint] {
+        let leading = segmentedControl.leadingAnchor.constraint(equalTo: headerView.leadingAnchor)
+        let top = segmentedControl.topAnchor.constraint(equalTo: headerView.topAnchor)
+        let trailing = segmentedControl.trailingAnchor.constraint(equalTo: headerView.trailingAnchor)
+        let bottomConstant: CGFloat = .itemSpacing
+        let bottom = segmentedControl.bottomAnchor.constraint(equalTo: chartView.topAnchor, constant: bottomConstant)
+        
+        chartViewBottomConstraint = bottom
+        
+        // increase priorities to override when visible
+        top.priority -= 1
+        bottom.priority -= 1
+        
+        return [leading, top, trailing, bottom]
+    }
+    
     private var chartViewBottomConstraint: NSLayoutConstraint?
     private func createChartViewConstraints() -> [NSLayoutConstraint] {
         let leading = chartView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor)
-        let top = chartView.topAnchor.constraint(equalTo: headerView.topAnchor)
+        let top = supportsMultipleIntervals
+                    ? chartView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: .itemSpacing)
+                    : chartView.topAnchor.constraint(equalTo: headerView.topAnchor)
         let trailing = chartView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor)
         let bottomConstant: CGFloat = showGroupedTableViewTitle ? .itemSpacingWithTitle : .itemSpacing
         let bottom = chartView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -bottomConstant)
